@@ -29,7 +29,9 @@
     antidote_ccrdt_average,
     antidote_ccrdt_topk,
     antidote_ccrdt_topk_rmv,
-    antidote_ccrdt_leaderboard
+    antidote_ccrdt_leaderboard,
+    antidote_ccrdt_wordcount,
+    antidote_ccrdt_worddocumentcount
 ]).
 
 -define(CAN_GENERATE_EXTRA_OPS, [
