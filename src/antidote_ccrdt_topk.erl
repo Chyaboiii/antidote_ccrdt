@@ -99,7 +99,9 @@ downstream({add, Elem}, Top) ->
 %% - `{add, pair()}`
 -spec update(effect_update(), topk()) -> {ok, topk()}.
 update({add, {Id, Score}}, TopK) when is_binary(Id), is_integer(Score) ->
-    {ok, add(Id, Score, TopK)}.
+    {ok, add(Id, Score, TopK)};
+update({add_map, Map}, TopK) ->
+    {ok, add_map(Map, TopK)}.
 
 %% Compares the two given `topk()` states.
 -spec equal(topk(), topk()) -> boolean().
@@ -127,11 +129,21 @@ is_replicate_tagged(_) -> false.
 
 %% Checks if the given `effect_update()` operations can be compacted.
 -spec can_compact(effect_update(), effect_update()) -> boolean().
-can_compact(_, _) -> false.
+can_compact(_, _) -> true.
 
 %% Compacts the given `effect_update()` operations.
 -spec compact_ops(effect_update(), effect_update()) -> {effect_update(), effect_update()}.
-compact_ops(_, _) -> {ok, ok}.
+compact_ops({add, {Id1, Score1}}, {add, {Id2, Score2}}) ->
+    NewOp = {add_map, #{Id1 => Score1, Id2 => Score2}},
+    {noop, NewOp};
+compact_ops({add, {Id, Score}}, {add_map, Map}) ->
+    NewOp = {add_map, maps:put(Id, Score, Map)},
+    {noop, NewOp};
+compact_ops(Op1 = {add_map, _}, Op2 = {add, _}) ->
+    compact_ops(Op2, Op1);
+compact_ops({add_map, Map1}, {add_map, Map2}) ->
+    NewOp = {add_map, maps:merge(Map1, Map2)},
+    {noop, NewOp}.
 
 %% Checks if the data type needs to know its current state to generate
 %% `update_effect()` operations.
@@ -144,6 +156,9 @@ require_state_downstream(_) -> true.
 -spec add(playerid(), score(), topk()) -> topk().
 add(Id, Score, {Top, Size}) ->
     {maps:put(Id, Score, Top), Size}.
+
+add_map(Map, {TopK, Size}) ->
+    {maps:merge(TopK, Map), Size}.
 
 %% Checks if attempting to add the given `pair()` to the `topk()` will alter its state.
 -spec changes_state(pair(), topk()) -> boolean().
@@ -177,6 +192,17 @@ update_add_test() ->
     {ok, Top2} = update({add, {<<"bar">>, 102}}, Top1),
     ?assertEqual([{<<"bar">>, 102}, {<<"foo">>, 101}], value(Top2)).
 
+compaction_test() ->
+    Expected = {noop, {add_map, #{<<"bar">> => 200, <<"foo">> => 150}}},
+    Result1 = compact_ops({add, {<<"foo">>, 150}}, {add, {<<"bar">>, 200}}),
+    ?assertEqual(Result1, Expected),
+    Result2 = compact_ops({add, {<<"foo">>, 150}}, {add_map, #{<<"bar">> => 200}}),
+    ?assertEqual(Result2, Expected),
+    Result3 = compact_ops({add_map, #{<<"bar">> => 200}}, {add, {<<"foo">>, 150}}),
+    ?assertEqual(Result3, Expected),
+    Result4 = compact_ops({add_map, #{<<"foo">> => 150}}, {add_map, #{<<"bar">> => 200}}),
+    ?assertEqual(Result4, Expected).
+            
 -endif.
 
 
