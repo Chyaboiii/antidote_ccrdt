@@ -63,7 +63,7 @@
 %% Creates a new `topk()` with a size of 100.
 -spec new() -> topk().
 new() ->
-    new(100). %% TOOD: alterar
+    new(1). %% TOOD: alterar
 
 %% Creates a new `topk()` with the given `Size`.
 -spec new(pos_integer()) -> topk().
