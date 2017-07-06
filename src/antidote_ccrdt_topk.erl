@@ -63,7 +63,7 @@
 %% Creates a new `topk()` with a size of 100.
 -spec new() -> topk().
 new() ->
-    new(1). %% TOOD: alterar
+    new(1000).
 
 %% Creates a new `topk()` with the given `Size`.
 -spec new(pos_integer()) -> topk().
@@ -120,7 +120,7 @@ from_binary(Bin) ->
 
 %% Checks if the given `prepare_update()` is supported by the `topk()`.
 -spec is_operation(any()) -> boolean().
-is_operation({add, {Id, Score}}) when is_binary(Id), is_integer(Score) -> true;
+is_operation({add, {Id, Score}}) when is_integer(Score) -> true;
 is_operation(_) -> false.
 
 %% Checks if the given `effect_update()` is tagged for replication.
