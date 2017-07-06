@@ -76,7 +76,7 @@ new(Topk, Size) when is_integer(Size), Size > 0 ->
     {Topk, Size};
 new(_, _) ->
     new().
-
+	
 %% Returns the value of the `topk()`.
 -spec value(topk()) -> list().
 value({Top, _}) ->
@@ -120,7 +120,7 @@ from_binary(Bin) ->
 
 %% Checks if the given `prepare_update()` is supported by the `topk()`.
 -spec is_operation(any()) -> boolean().
-is_operation({add, {Id, Score}}) when is_integer(Score) -> true;
+is_operation({add, {_Id, Score}}) when is_integer(Score) -> true;
 is_operation(_) -> false.
 
 %% Checks if the given `effect_update()` is tagged for replication.
