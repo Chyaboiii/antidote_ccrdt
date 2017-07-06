@@ -98,7 +98,7 @@ downstream({add, Elem}, Top) ->
 %% The executable `effect_update()` for this data type are:
 %% - `{add, pair()}`
 -spec update(effect_update(), topk()) -> {ok, topk()}.
-update({add, {Id, Score}}, TopK) when is_binary(Id), is_integer(Score) ->
+update({add, {Id, Score}}, TopK) when is_integer(Score) ->
     {ok, add(Id, Score, TopK)};
 update({add_map, Map}, TopK) ->
     {ok, add_map(Map, TopK)}.
